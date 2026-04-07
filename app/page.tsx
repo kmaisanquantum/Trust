@@ -19,7 +19,7 @@ export default function Home() {
             fontSize: 18, fontWeight: 800, color: "#0A0F0D"
           }}>T</div>
           <span style={{ fontWeight: 800, fontSize: 18, letterSpacing: "-0.02em" }}>
-            trust.<span style={{ color: "var(--accent)" }}>dspng</span>.tech
+            Trust
           </span>
         </div>
         <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
@@ -159,7 +159,7 @@ export default function Home() {
         flexWrap: "wrap", gap: 12
       }}>
         <span style={{ color: "var(--text3)", fontSize: 13, fontFamily: "var(--font-mono)" }}>
-          © 2025 trust.dspng.tech — Port Moresby, PNG
+          © 2025 Trust — Port Moresby, PNG
         </span>
         <div style={{ display: "flex", gap: 20 }}>
           {["Privacy", "Terms", "Support"].map(l => (

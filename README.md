@@ -1,4 +1,4 @@
-# trust.dspng.tech — Verified PNG Marketplace
+# Trust — Verified PNG Marketplace
 
 Papua New Guinea's trusted marketplace with SevisPass digital identity and escrow-protected payments.
 
