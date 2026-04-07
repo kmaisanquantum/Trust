@@ -1,5 +1,5 @@
 -- ============================================================
--- trust.dspng.tech — Supabase Schema
+-- Trust — Supabase Schema
 -- Run this in: Supabase Dashboard > SQL Editor
 -- ============================================================
 

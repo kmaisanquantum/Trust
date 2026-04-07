@@ -77,7 +77,7 @@ export default function RegisterPage() {
       <div style={{ width: "100%", maxWidth: 440 }}>
         <Link href="/" style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 40, justifyContent: "center" }}>
           <div style={{ width: 32, height: 32, borderRadius: 7, background: "var(--accent)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, fontWeight: 800, color: "#0A0F0D" }}>T</div>
-          <span style={{ fontWeight: 800, fontSize: 16 }}>trust.<span style={{ color: "var(--accent)" }}>dspng</span>.tech</span>
+          <span style={{ fontWeight: 800, fontSize: 16 }}>Trust</span>
         </Link>
 
         {/* Step indicator */}

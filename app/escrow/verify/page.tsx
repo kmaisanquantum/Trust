@@ -51,7 +51,7 @@ function VerifyContent() {
       <div style={{ maxWidth: 400, width: "100%", textAlign: "center" }} className="animate-in">
         <Link href="/" style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 48, justifyContent: "center" }}>
           <div style={{ width: 32, height: 32, borderRadius: 7, background: "var(--accent)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, fontWeight: 800, color: "#0A0F0D" }}>T</div>
-          <span style={{ fontWeight: 800, fontSize: 16 }}>trust.<span style={{ color: "var(--accent)" }}>dspng</span>.tech</span>
+          <span style={{ fontWeight: 800, fontSize: 16 }}>Trust</span>
         </Link>
 
         {s.showSpinner ? (
@@ -68,7 +68,7 @@ function VerifyContent() {
             <div style={{ fontSize: 14, color: "var(--text2)", lineHeight: 1.8 }}>
               The seller has received payment.<br />
               Your transaction is complete and protected by<br />
-              <strong style={{ color: "var(--accent)" }}>trust.dspng.tech escrow</strong>.
+              <strong style={{ color: "var(--accent)" }}>Trust Escrow</strong>.
             </div>
           </div>
         )}

@@ -139,7 +139,7 @@ export default function Dashboard() {
       }}>
         <Link href="/" style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <div style={{ width: 30, height: 30, borderRadius: 7, background: "var(--accent)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15, fontWeight: 800, color: "#0A0F0D" }}>T</div>
-          <span style={{ fontWeight: 800, fontSize: 15 }}>trust.<span style={{ color: "var(--accent)" }}>dspng</span></span>
+          <span style={{ fontWeight: 800, fontSize: 15 }}>Trust</span>
         </Link>
         <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
           <button

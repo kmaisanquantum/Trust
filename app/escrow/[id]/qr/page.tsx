@@ -140,7 +140,7 @@ export default function QRPage() {
             <p style={{ fontSize: 13, color: "var(--text2)", lineHeight: 1.7 }}>
               <strong style={{ color: "var(--text)" }}>How this works:</strong><br />
               1. Show this QR to the buyer on delivery<br />
-              2. Buyer scans it with the trust.dspng app<br />
+              2. Buyer scans it with the Trust app<br />
               3. Funds are instantly released to your account
             </p>
           </div>
