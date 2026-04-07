@@ -27,12 +27,11 @@ CREATE TABLE IF NOT EXISTS public.profiles (
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
-  INSERT INTO public.profiles (id, full_name, avatar_url, sevispass_id)
+  INSERT INTO public.profiles (id, full_name, avatar_url)
   VALUES (
     NEW.id,
     NEW.raw_user_meta_data->>'full_name',
-    NEW.raw_user_meta_data->>'avatar_url',
-    'SVS-' || TO_CHAR(NOW(), 'YYYY') || '-' || LPAD(FLOOR(RANDOM() * 99999)::TEXT, 5, '0')
+    NEW.raw_user_meta_data->>'avatar_url'
   );
   RETURN NEW;
 END;
@@ -93,6 +92,10 @@ CREATE TABLE IF NOT EXISTS public.escrow_transactions (
   qr_token            TEXT UNIQUE,
   qr_expires_at       TIMESTAMPTZ,
   
+  -- Handover verification
+  buyer_scanned_at    TIMESTAMPTZ,
+  seller_scanned_at   TIMESTAMPTZ,
+
   -- Payment metadata (mock for now — real: BSP Bank / BRED PNG)
   payment_reference   TEXT,
   payment_method      TEXT DEFAULT 'bank_transfer',
@@ -159,7 +162,11 @@ CREATE POLICY "Users can update own profile" ON public.profiles FOR UPDATE USING
 
 -- Listings: anyone can view active, sellers manage their own
 CREATE POLICY "Anyone can view active listings" ON public.listings FOR SELECT USING (is_active = true);
-CREATE POLICY "Sellers can manage own listings" ON public.listings FOR ALL USING (auth.uid() = seller_id);
+CREATE POLICY "Verified sellers can create listings" ON public.listings FOR INSERT WITH CHECK (
+  auth.uid() = seller_id AND
+  EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND is_verified = true)
+);
+CREATE POLICY "Sellers can update/delete own listings" ON public.listings FOR ALL USING (auth.uid() = seller_id);
 
 -- Escrow: only parties involved
 CREATE POLICY "Parties can view their transactions" ON public.escrow_transactions
@@ -177,12 +184,3 @@ CREATE POLICY "Parties can view events" ON public.transaction_events
       WHERE t.id = transaction_id AND (t.buyer_id = auth.uid() OR t.seller_id = auth.uid())
     )
   );
-
--- ============================================================
--- SEED: Demo listings (run after creating a test user)
--- ============================================================
--- INSERT INTO public.listings (seller_id, title, description, category, price, condition, location)
--- VALUES 
---   ('<your-user-id>', 'Toyota Landcruiser 200 Series', '2019 model, diesel, well maintained', 'vehicles', 185000, 'good', 'Port Moresby'),
---   ('<your-user-id>', 'Solar Panel Kit 2kW', 'Complete off-grid system with batteries', 'electronics', 8500, 'new', 'Lae'),
---   ('<your-user-id>', '5 Acres Agricultural Land', 'Highlands region, fertile soil', 'agriculture', 45000, 'new', 'Mt Hagen');

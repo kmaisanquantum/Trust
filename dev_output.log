@@ -1,0 +1,24 @@
+
+> trust-dspng@0.1.0 dev
+> next dev
+
+   ▲ Next.js 15.2.4
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.0.2:3000
+
+ ✓ Starting...
+ ✓ Ready in 1947ms
+ ○ Compiling /auth/login ...
+ ✓ Compiled /auth/login in 9.7s (805 modules)
+ GET /auth/login 200 in 11572ms
+ GET /auth/login 200 in 173ms
+ GET /auth/login 200 in 78ms
+ ✓ Compiled in 928ms (791 modules)
+ GET /auth/login 200 in 305ms
+ ○ Compiling /dashboard ...
+ ✓ Compiled /dashboard in 583ms (798 modules)
+ GET /dashboard 200 in 678ms
+ GET /auth/login 200 in 175ms
+ GET /auth/login 200 in 114ms
+ ✓ Compiled in 462ms (798 modules)
+ GET /dashboard 200 in 408ms

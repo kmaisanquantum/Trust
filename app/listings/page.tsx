@@ -1,18 +1,9 @@
 "use client";
 export const dynamic = "force-dynamic";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-
-const ALL_LISTINGS = [
-  { id: "1", title: "Toyota Landcruiser 200 Series", price: 185000, category: "vehicles", condition: "good", location: "Port Moresby, NCD", seller: "Kila Wari", verified: true, image: "🚙", views: 247, date: "2025-01-15" },
-  { id: "2", title: "Solar Panel Kit 2kW", price: 8500, category: "electronics", condition: "new", location: "Lae, Morobe", seller: "Mary Kapi", verified: true, image: "☀️", views: 89, date: "2025-01-14" },
-  { id: "3", title: "5 Acres Agricultural Land", price: 45000, category: "agriculture", condition: "new", location: "Mt Hagen, WHP", seller: "Peter Mondo", verified: false, image: "🌱", views: 312, date: "2025-01-12" },
-  { id: "4", title: "Samsung Galaxy S24", price: 2800, category: "electronics", condition: "like_new", location: "Port Moresby, NCD", seller: "Ruth Narokobi", verified: true, image: "📱", views: 156, date: "2025-01-13" },
-  { id: "5", title: "3 Bedroom House — Gordons", price: 320000, category: "property", condition: "good", location: "Gordons, NCD", seller: "John Namaliu", verified: true, image: "🏠", views: 420, date: "2025-01-10" },
-  { id: "6", title: "Fresh Vanilla Beans — 50kg", price: 4200, category: "agriculture", condition: "new", location: "Alotau, Milne Bay", seller: "Agnes Sere", verified: false, image: "🌿", views: 67, date: "2025-01-16" },
-  { id: "7", title: "Honda Generator 6.5kVA", price: 3500, category: "electronics", condition: "good", location: "Kokopo, ENB", seller: "Tom Kaupa", verified: true, image: "⚡", views: 201, date: "2025-01-11" },
-  { id: "8", title: "Traditional Bilum Collection", price: 850, category: "clothing", condition: "new", location: "Goroka, EHP", seller: "Rosa Kagl", verified: false, image: "👜", views: 44, date: "2025-01-16" },
-];
+import { supabase } from "@/lib/supabase";
+import Image from "next/image";
 
 const CATEGORIES = ["all", "electronics", "vehicles", "property", "agriculture", "clothing", "services"];
 
@@ -21,10 +12,26 @@ export default function ListingsPage() {
   const [category, setCategory] = useState("all");
   const [sortBy, setSortBy] = useState("date");
   const [verifiedOnly, setVerifiedOnly] = useState(false);
+  const [listings, setListings] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const filtered = ALL_LISTINGS
-    .filter(l => category === "all" || l.category === category)
-    .filter(l => !verifiedOnly || l.verified)
+  useEffect(() => {
+    async function fetchListings() {
+      let query = supabase.from('listings').select('*, profiles(full_name, is_verified)');
+
+      if (category !== "all") {
+        query = query.eq('category', category);
+      }
+
+      const { data } = await query.order('created_at', { ascending: false });
+      setListings(data || []);
+      setLoading(false);
+    }
+    fetchListings();
+  }, [category]);
+
+  const filtered = listings
+    .filter(l => !verifiedOnly || l.profiles?.is_verified)
     .filter(l => l.title.toLowerCase().includes(search.toLowerCase()) || l.location.toLowerCase().includes(search.toLowerCase()))
     .sort((a, b) => sortBy === "price_asc" ? a.price - b.price : sortBy === "price_desc" ? b.price - a.price : 0);
 
@@ -94,9 +101,19 @@ export default function ListingsPage() {
               onMouseOut={e => { (e.currentTarget as HTMLElement).style.transform = ""; (e.currentTarget as HTMLElement).style.boxShadow = ""; }}>
               {/* Image area */}
               <div style={{ background: "var(--surface)", height: 160, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 64, position: "relative" }}>
-                {l.image}
-                {l.verified && (
-                  <div className="badge badge-green" style={{ position: "absolute", top: 12, right: 12, fontSize: 11 }}>
+                {l.images?.[0] ? (
+                  <Image
+                    src={l.images[0]}
+                    alt={l.title}
+                    fill
+                    style={{ objectFit: 'cover' }}
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                  />
+                ) : (
+                   <div style={{ fontSize: 48 }}>{l.category === 'vehicles' ? '🚙' : l.category === 'electronics' ? '☀️' : '📦'}</div>
+                )}
+                {l.profiles?.is_verified && (
+                  <div className="badge badge-green" style={{ position: "absolute", top: 12, right: 12, fontSize: 11, zIndex: 1 }}>
                     ✓ Verified
                   </div>
                 )}
@@ -109,7 +126,7 @@ export default function ListingsPage() {
                   <span style={{ fontSize: 20, fontWeight: 800, color: "var(--accent)", fontFamily: "var(--font-mono)" }}>
                     K {l.price.toLocaleString()}
                   </span>
-                  <span style={{ fontSize: 12, color: "var(--text3)" }}>👁 {l.views}</span>
+                  <span style={{ fontSize: 12, color: "var(--text3)" }}>👁 {l.view_count}</span>
                 </div>
                 <div className="divider" style={{ margin: "12px 0" }} />
                 <div style={{ display: "flex", gap: 8 }}>
@@ -122,12 +139,18 @@ export default function ListingsPage() {
           ))}
         </div>
 
-        {filtered.length === 0 && (
+        {filtered.length === 0 && !loading && (
           <div style={{ textAlign: "center", padding: "80px 0", color: "var(--text2)" }}>
             <div style={{ fontSize: 48, marginBottom: 16 }}>🔍</div>
             <p style={{ fontSize: 18, fontWeight: 600 }}>No listings found</p>
             <p style={{ fontSize: 14, marginTop: 8 }}>Try adjusting your filters</p>
           </div>
+        )}
+
+        {loading && (
+           <div style={{ display: "flex", justifyContent: "center", padding: "80px 0" }}>
+              <div style={{ width: 36, height: 36, border: "3px solid var(--accent)", borderTopColor: "transparent", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
+           </div>
         )}
       </div>
     </div>

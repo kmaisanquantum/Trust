@@ -1,6 +1,6 @@
 "use client";
 export const dynamic = "force-dynamic";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
@@ -17,6 +17,7 @@ const PROVINCES = ["National Capital District","Morobe","Western Highlands","Eas
 
 export default function NewListingPage() {
   const router = useRouter();
+  const [isVerified, setIsVerified] = useState<boolean | null>(null);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("");
@@ -26,14 +27,30 @@ export default function NewListingPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  useEffect(() => {
+    async function checkVerification() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        router.push("/auth/login");
+        return;
+      }
+      const { data: profile } = await (supabase as any).from('profiles').select('is_verified').eq('id', user.id).single();
+      setIsVerified(profile?.is_verified || false);
+    }
+    checkVerification();
+  }, [router]);
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!isVerified) {
+      setError("Only SevisPass verified users can create listings.");
+      return;
+    }
     setLoading(true); setError("");
 
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { router.push("/auth/login"); return; }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { error: insertError } = await (supabase as any).from("listings").insert({
       seller_id: user.id,
       title, description, category,
@@ -42,12 +59,37 @@ export default function NewListingPage() {
     });
 
     if (insertError) {
-      // Demo mode: just redirect as if it worked
-      console.log("Supabase insert (demo):", insertError.message);
+      setError("Error creating listing: " + insertError.message);
+      setLoading(false);
+      return;
     }
 
-    setTimeout(() => { router.push("/dashboard"); }, 800);
+    router.push("/dashboard");
   }
+
+  if (isVerified === null) return (
+    <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <div style={{ width: 36, height: 36, border: "3px solid var(--accent)", borderTopColor: "transparent", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
+    </div>
+  );
+
+  if (isVerified === false) return (
+    <div style={{ minHeight: "100vh", padding: 24, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+      <div className="card animate-in" style={{ textAlign: "center", maxWidth: 440 }}>
+        <div style={{ fontSize: 64, marginBottom: 24 }}>🪪</div>
+        <h1 style={{ fontSize: 26, fontWeight: 800, marginBottom: 12 }}>Verification Required</h1>
+        <p style={{ color: "var(--text2)", marginBottom: 32, lineHeight: 1.6 }}>
+          To maintain a safe marketplace, only users with a verified SevisPass ID can list items for sale.
+        </p>
+        <Link href="/dashboard">
+          <button className="btn-primary" style={{ width: "100%" }}>Get Verified in Dashboard →</button>
+        </Link>
+        <Link href="/dashboard" style={{ display: "block", marginTop: 20, color: "var(--text3)", fontSize: 14 }}>
+          Return to Dashboard
+        </Link>
+      </div>
+    </div>
+  );
 
   return (
     <div style={{ minHeight: "100vh", padding: 24, display: "flex", flexDirection: "column", alignItems: "center" }}>
@@ -71,20 +113,20 @@ export default function NewListingPage() {
           <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 20 }}>
             <div>
               <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "var(--text2)", marginBottom: 8 }}>Listing Title *</label>
-              <input placeholder="e.g. Toyota Hilux 2020, barely used" value={title} onChange={e => setTitle(e.target.value)} required />
+              <input placeholder="e.g. Toyota Hilux 2020, barely used" value={title} onChange={(e) => setTitle(e.target.value)} required />
             </div>
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
               <div>
                 <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "var(--text2)", marginBottom: 8 }}>Category *</label>
-                <select value={category} onChange={e => setCategory(e.target.value)} required>
+                <select value={category} onChange={(e) => setCategory(e.target.value)} required>
                   <option value="" disabled>Select...</option>
                   {CATEGORIES.map(c => <option key={c} value={c} style={{ textTransform: "capitalize" }}>{c}</option>)}
                 </select>
               </div>
               <div>
                 <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "var(--text2)", marginBottom: 8 }}>Condition *</label>
-                <select value={condition} onChange={e => setCondition(e.target.value)} required>
+                <select value={condition} onChange={(e) => setCondition(e.target.value)} required>
                   <option value="" disabled>Select...</option>
                   {CONDITIONS.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
                 </select>
@@ -94,18 +136,18 @@ export default function NewListingPage() {
             <div>
               <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "var(--text2)", marginBottom: 8 }}>Description</label>
               <textarea placeholder="Describe the item, its history, any defects, what's included..." value={description}
-                onChange={e => setDescription(e.target.value)} rows={4} style={{ resize: "vertical" }} />
+                onChange={(e) => setDescription(e.target.value)} rows={4} style={{ resize: "vertical" }} />
             </div>
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
               <div>
                 <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "var(--text2)", marginBottom: 8 }}>Price (PGK) *</label>
                 <input type="number" placeholder="0.00" min="1" step="0.01" value={price}
-                  onChange={e => setPrice(e.target.value)} required />
+                  onChange={(e) => setPrice(e.target.value)} required />
               </div>
               <div>
                 <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "var(--text2)", marginBottom: 8 }}>Province *</label>
-                <select value={province} onChange={e => setProvince(e.target.value)} required>
+                <select value={province} onChange={(e) => setProvince(e.target.value)} required>
                   <option value="" disabled>Select...</option>
                   {PROVINCES.map(p => <option key={p}>{p}</option>)}
                 </select>
