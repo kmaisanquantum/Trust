@@ -22,15 +22,30 @@ export default function RegisterPage() {
     if (step === 1) { setStep(2); return; }
     setLoading(true); setError("");
 
-    const { data, error } = await supabase.auth.signUp({
+    const { data, error: signUpError } = await supabase.auth.signUp({
       email, password,
       options: { data: { full_name: fullName, phone } }
     });
 
-    if (error) { setError(error.message); setLoading(false); return; }
+    if (signUpError) { setError(signUpError.message); setLoading(false); return; }
     if (data.user) {
-      // Simulate SevisPass ID generation
+      // Simulate SevisPass ID generation and profile update
       const mockId = "SVS-" + new Date().getFullYear() + "-" + String(Math.floor(Math.random() * 99999)).padStart(5, "0");
+
+      // Since handle_new_user trigger creates the profile, we update it
+      const { error: profileError } = await (supabase as any)
+        .from('profiles')
+        .update({
+          is_verified: true,
+          sevispass_id: mockId,
+          phone: phone
+        })
+        .eq('id', data.user.id);
+
+      if (profileError) {
+        console.error("Profile update error:", profileError);
+      }
+
       setSevisId(mockId);
       setStep(3);
     }
@@ -93,19 +108,19 @@ export default function RegisterPage() {
               <>
                 <div>
                   <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "var(--text2)", marginBottom: 8 }}>Full Name</label>
-                  <input placeholder="Kila Wari" value={fullName} onChange={e => setFullName(e.target.value)} required />
+                  <input placeholder="Kila Wari" value={fullName} onChange={(e) => setFullName(e.target.value)} required />
                 </div>
                 <div>
                   <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "var(--text2)", marginBottom: 8 }}>Email</label>
-                  <input type="email" placeholder="you@example.com" value={email} onChange={e => setEmail(e.target.value)} required />
+                  <input type="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
                 </div>
                 <div>
                   <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "var(--text2)", marginBottom: 8 }}>Password</label>
-                  <input type="password" placeholder="Min. 8 characters" value={password} onChange={e => setPassword(e.target.value)} required minLength={8} />
+                  <input type="password" placeholder="Min. 8 characters" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={8} />
                 </div>
                 <div>
                   <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "var(--text2)", marginBottom: 8 }}>Phone (PNG)</label>
-                  <input placeholder="+675 7XXX XXXX" value={phone} onChange={e => setPhone(e.target.value)} />
+                  <input placeholder="+675 7XXX XXXX" value={phone} onChange={(e) => setPhone(e.target.value)} />
                 </div>
               </>
             ) : (
@@ -115,7 +130,7 @@ export default function RegisterPage() {
                 </div>
                 <div>
                   <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "var(--text2)", marginBottom: 8 }}>PNG National ID Number</label>
-                  <input placeholder="NID-XXXXXXXX" value={nationalId} onChange={e => setNationalId(e.target.value)} required />
+                  <input placeholder="NID-XXXXXXXX" value={nationalId} onChange={(e) => setNationalId(e.target.value)} required />
                 </div>
                 <div>
                   <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "var(--text2)", marginBottom: 8 }}>Province</label>
